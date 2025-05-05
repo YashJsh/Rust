@@ -192,6 +192,69 @@
 // 
 // 
 
+
+// At any given time, you can have either one mutable reference or any number of immutable references.
+// References must always be valid.
+
+// Refactring the tuples
+
+// here instead of doing this : 
+
+// fn main() {
+//     let width1 = 30;
+//     let height1 = 50;
+
+//     println!(
+//         "The area of the rectangle is {} square pixels.",
+//         area(width1, height1)
+//     );
+// }
+
+// fn area(width: u32, height: u32) -> u32 {
+//     width * height
+// }
+
+// We do this : 
+
+
+// fn main() {
+//     let rect1 = (30, 50);
+
+//     println!(
+//         "The area of the rectangle is {} square pixels.",
+//         area(rect1)
+//     );
+// }
+
+// fn area(dimensions: (u32, u32)) -> u32 {
+//     dimensions.0 * dimensions.1
+// }
+
+// Refactoring with structs : Adding more meaning
+
+// if we have a struct and we want to have an function associated with struct 
+// we use impl function for that
+use std::fs;
+mod time;
+
+
+#[derive(Debug)]
+struct Rectangle{
+    width : u32, 
+    height : u32
+}
+
+impl Rectangle{
+    fn perimeter(&self) -> u32{
+        (self.height + self.width)*2
+    }
+}
+
+fn area(rectangle : &Rectangle) -> u32{
+    rectangle.height * rectangle.width
+}
+
+
 fn c_to_f(temp :f64) -> f64{
     temp * (9.0/5.0) as f64 + 32.0
 }
@@ -206,36 +269,196 @@ fn lookingforloop(s : &str) {
     }
 }
 
-fn main(){
-    let mut s = String::from("hello");
-    s.push_str(", world!"); // push_str() appends a literal to a String
-    println!("{s}");
+fn string_slicing(){
+    let s = String::from("Hello");
+    let slice = &s[..2];
+    let slice2 = &s[2..s.len()];
+    println!("the sliced string is : {}", slice);
+    println!("the sliced string is : {}", slice2);
+    let a = [1,2,3,4,5];
+    let sliced = &a[1..3];
+    println!("slice : {:?}", sliced);
+}
 
-    let value = s; // S now dont have the ownership of hello it is transferred to the value; s's memory is delocated
-    let value2 = value.clone();
-    // println!("{s}"); It wont work as the ovnership of s is now passed to value
-    println!("{value}");
-    println!("{value2}");
+fn first_word(s : &String) -> &str {
+    let bytes = s.as_bytes();
+    for (i , &item) in bytes.iter().enumerate() {
+        if item == b' ' {
+            return &s[0..i]
+        }
+    }
+    &s[..]
+}
+
+struct User{
+    name : String, 
+    id : u128,
+    email : String,
+    active : bool,
+}
+
+#[derive(Debug)]
+struct Color(i32, i32, i32);
+
+#[derive(Debug)]
+struct Point(i32, i32, i32);
+
+
+#[derive(Debug)]
+enum Direction{
+    North,
+    South,
+    East,
+    West
+}
+
+fn move_around(direction : Direction){
+    println!("{:?}", direction);
+}
+
+#[derive(Debug)]
+enum Shape{
+    circle(f64),
+    rectangle(f64, f64)
+}
+
+fn shape_area(shape:Shape)->f64{
+    //Pattern matching
+    let ans = match shape{
+        Shape::circle(radius) => 3.14*radius*radius,
+        Shape::rectangle(height,width ) => height*width
+    };
+    return ans;
+}
+
+struct Points<A, B>{
+    x : A,
+    y : B,
+    z : B
+}
+
+
+// enum Result<T, E>{
+//     Ok(T),
+//     Err(E)
+// }
+
+fn findlessthan(arr : &[i32],) -> Option<usize>{
+    for (i, &num) in arr.iter().enumerate(){
+        if num < arr[i]{
+            return Some(i);
+        }
+    }
+    None
+}
+
+mod vector;
+
+fn main(){
+    vector::pushvector();
+
+    let mut vec : Vec<i32> = Vec::new();
+    vec.push(1);
+    vec.push(2);
+    vec.push(3);
+    println!("{:?}", vec);
+    let vec2 = vec.clone();
+    println!("{:?}", vector::even_vector(vec));
+
+    println!("Method 2 is : {:?}", vector::even_vector_method_two(vec2));
+
+
+    time::time();
+
+
+    let res = fs::read_to_string("./file.txt");
+    match res{
+        Ok(content)=>{
+            println!("File Content, {}", content);
+        },
+        Err(err)=>{
+            println!("{}", err);
+        }
+    }
+    const arr : [i32; 5] = [1,2,34,56,23];
+    match (findlessthan(&arr)) {
+        Some(index)=>println!("{}", index),
+        None => println!("The result not found")
+    }
+
+    let integerpoint = Points{x : 32, y : "Helo", z : "Hello"};
+
+    let my_direction = Direction::East;
+    move_around(my_direction);
+
+    let my_ball = Shape::circle((4.5));
+    println!("{:?}", my_ball);
+    println!("Area is : {:?}", shape_area(my_ball));
+
+    let rec1 = Rectangle{
+        width : 30,
+        height : 389
+    };
+    println!("Area is  : {} cm square", area(&rec1));
+    println!("Perimeter is : {} cm", rec1.perimeter());
+    println!("{rec1:?}");
+
+    let mut user1 = User{
+        name : String::from("Yash Joshi"),
+        id : 1,
+        email : String::from("yaxj29@gmail.com"),
+        active : false
+    };
+    let user2 = User {
+        email: String::from("another@example.com"),
+        ..user1
+    };
+    // println!("{}", user1.name); will not work as ownership is moved here to user2 from user1
+    user1.name = String::from("Divyakshi Kuri");
+    println!("{}",user1.name);
+    println!{"{}", user2.name};
+
+    let black = Color(0,0,0);
+    let origin  = Point(12,12,12);
+
+    println!("the color is : {:?} and the origin is : {:?}", black, origin);
+    //if you want to print a struct with {:?}, you must derive the Debug trait!
+
+    let s = String::from("Hellow rolsd f");
+    string_slicing();
+    print!("{}", first_word(&s));
+
+
+
+    // let mut s = String::from("hello");
+    // s.push_str(", world!"); // push_str() appends a literal to a String
+    // println!("{s}");
+
+    // let value = s; // S now dont have the ownership of hello it is transferred to the value; s's memory is delocated
+    // let value2 = value.clone();
+    // // println!("{s}"); It wont work as the ovnership of s is now passed to value
+    // println!("{value}");
+    // println!("{value2}");
     
 
 
-    let mut i = 32;
-    let x = i;
+    // let mut i = 32;
+    // let x = i;
 
-    println!("{i}");
-    println!("{x}");
+    // println!("{i}");
+    // println!("{x}");
 
-    for number in (1..4).rev() {
-        println!("{number}!");
-    }
-    println!("LIFTOFF!!!");
+    // for number in (1..4).rev() {
+    //     println!("{number}!");
+    // }
+    // println!("LIFTOFF!!!");
 
-    let ans = c_to_f(12.4);
-    println!("The temperature in Fahrenheit is {} Fahrenheit", ans);
-    println!("{}", c_to_f(123.4));
+    // let ans = c_to_f(12.4);
+    // println!("The temperature in Fahrenheit is {} Fahrenheit", ans);
+    // println!("{}", c_to_f(123.4));
 
     //looping in str() string needs str.chars() to do it:
-    lookingforloop("The Twelve Days of Christmas");
+    // lookingforloop("The Twelve Days of Christmas");
 
     // let guess : u32 = "43".parse().expect("Not a number");
     // print!("{guess}");
